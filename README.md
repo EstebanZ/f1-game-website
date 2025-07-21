@@ -1,246 +1,190 @@
-# 🏎️ Reflex Game System
+# 🏎️ F1 Reflex Game
 
-Un sistema completo de juego de reflejos con autenticación por email de Gmail, backend en Node.js y frontend en React.
+Un juego de reflejos inspirado en las luces de largada de Fórmula 1. ¡Prueba tu tiempo de reacción como un verdadero piloto de F1!
 
 ## 🎮 Características
 
-- **Autenticación simple**: Solo requiere email de Gmail válido
-- **Juego de reflejos**: Mide tu tiempo de reacción presionando la barra espaciadora
-- **Sistema de puntuaciones**: Guarda y muestra las mejores puntuaciones
-- **Dashboard personal**: Estadísticas y historial de cada usuario
-- **Panel de administración**: Dashboard completo para administradores
-- **Base de datos SQLite**: Almacenamiento local simple y eficiente
+- **Semáforo Auténtico**: 5 luces rojas que se encienden secuencialmente, igual que en F1
+- **100% Frontend**: No requiere servidor backend, funciona completamente en el navegador
+- **Almacenamiento Local**: Todos tus puntajes se guardan automáticamente en tu navegador
+- **Integración Google Sheets**: Registro opcional de estadísticas en Google Sheets
+- **Sistema de Puntuación**: Análisis detallado de tiempo de reacción y progreso
+- **Dashboard Completo**: Estadísticas, historial y análisis de rendimiento
+- **Responsive**: Funciona perfectamente en móviles y escritorio
+- **Backup/Restore**: Exporta e importa tus datos
 
-## 🚀 Tecnologías
+## 🚀 Inicio Rápido
 
-### Backend
-- Node.js + Express
-- SQLite3
-- JWT para autenticación
-- Validación de emails de Gmail
+### Prerequisitos
+- Node.js 16+
+- npm
 
-### Frontend
-- React 18 con TypeScript
-- Axios para HTTP requests
-- CSS personalizado con animaciones
-- Responsive design
+### Instalación
 
-## 📋 Requisitos
-
-- Node.js 16 o superior (para desarrollo local)
-- NPM o Yarn (para desarrollo local)
-- Docker y Docker Compose (para deployment)
-
-## 🛠️ Instalación y Ejecución
-
-### 🐳 Opción 1: Con Docker (Recomendado)
-
-La forma más fácil de ejecutar el proyecto es usando Docker Compose:
-
-1. **Clonar el repositorio**
 ```bash
-git clone <repository-url>
-cd reflex-game-system
-```
+# Clonar el repositorio
+git clone https://github.com/EstebanZ/f1-game-website.git
+cd f1-game-website
 
-2. **Configurar variables de entorno**
-```bash
-cp .env.docker .env
-# Editar .env con tus valores personalizados
-```
-
-3. **Ejecutar con Docker Compose**
-```bash
-# Construir y ejecutar todos los servicios
-docker-compose up -d
-
-# Ver los logs
-docker-compose logs -f
-
-# Parar los servicios
-docker-compose down
-```
-
-La aplicación estará disponible en:
-- **Frontend**: `http://localhost` (puerto 80)
-- **Backend API**: `http://localhost:3001`
-
-### 💻 Opción 2: Desarrollo Local
-
-Para desarrollo local sin Docker:
-
-1. **Instalar dependencias del backend**
-```bash
+# Instalar dependencias
 npm install
-```
 
-2. **Instalar dependencias del frontend**
-```bash
-cd frontend
-npm install
-cd ..
-```
-
-3. **Configurar variables de entorno**
-```bash
-# Editar el archivo .env en la raíz del proyecto
-PORT=3001
-NODE_ENV=development
-FRONTEND_URL=http://localhost:3000
-JWT_SECRET=tu_jwt_secret_super_seguro_aqui
-```
-
-4. **Ejecutar el backend**
-```bash
-npm run dev
-```
-
-5. **Ejecutar el frontend** (en otra terminal)
-```bash
-cd frontend
+# Iniciar el servidor de desarrollo
 npm start
 ```
 
-El frontend estará disponible en `http://localhost:3000` y el backend en `http://localhost:3001`.
-
-## 🐳 Comandos de Docker Útiles
-
-```bash
-# Ver estado de los contenedores
-docker-compose ps
-
-# Ver logs en tiempo real
-docker-compose logs -f
-
-# Reconstruir las imágenes
-docker-compose build
-
-# Reconstruir y ejecutar
-docker-compose up -d --build
-
-# Parar y eliminar contenedores
-docker-compose down
-
-# Parar, eliminar contenedores y volúmenes
-docker-compose down -v
-
-# Ejecutar comandos dentro del contenedor backend
-docker-compose exec backend sh
-
-# Ver la base de datos
-docker-compose exec backend ls -la backend/database/
-```
+El juego estará disponible en `http://localhost:3000`
 
 ## 🎯 Cómo Jugar
 
-1. **Registro/Login**: Ingresa tu email de Gmail
-2. **Empezar el juego**: Haz clic en "Empezar Juego"
-3. **Esperar**: Espera a que el área se ponga verde
-4. **Reaccionar**: Presiona la barra espaciadora lo más rápido posible
-5. **Ver resultados**: Tu tiempo de reacción y puntuación se guardarán automáticamente
+1. **Iniciar**: Ingresa tu email (y nombre si es tu primera vez)
+2. **Comenzar**: Presiona "Comenzar Carrera" o `ESPACIO`
+3. **Esperar**: Observa las 5 luces rojas encenderse secuencialmente
+4. **¡Reaccionar!**: Cuando todas las luces se apaguen, presiona `ESPACIO` lo más rápido posible
+5. **Repetir**: Presiona `ESPACIO` de nuevo para una nueva carrera
+
+⚠️ **¡Cuidado con las salidas en falso!** Si presionas antes de que se apaguen todas las luces, será penalización.
 
 ## 📊 Sistema de Puntuación
 
-- **< 200ms**: 1000 puntos 🥇
-- **200-299ms**: 800 puntos 🥈
-- **300-399ms**: 600 puntos 🥉
-- **400-499ms**: 400 puntos
-- **500-599ms**: 200 puntos
-- **≥ 600ms**: 100 puntos
+- **< 150ms**: 1000 pts - Nivel Profesional 🏆
+- **< 200ms**: 900 pts - Excelente ⭐
+- **< 250ms**: 800 pts - Muy Bueno 🥇
+- **< 300ms**: 700 pts - Bueno 🥉
+- **< 350ms**: 600 pts - Promedio 👍
+- **< 400ms**: 500 pts - Necesita Práctica 📈
+- **> 400ms**: 400 pts - Sigue Intentando 💪
 
-## 👥 Roles de Usuario
+## 🔧 Configuración Opcional: Integración con Google Sheets
 
-### Usuario Normal
-- Jugar el juego de reflejos
-- Ver su dashboard personal
-- Ver estadísticas y historial
+Para registrar automáticamente las estadísticas en Google Sheets:
 
-### Administrador
-- Todas las funciones de usuario normal
-- Dashboard de administración global
-- Leaderboard de todos los usuarios
-- Gestión de usuarios
-- Estadísticas generales del sistema
+### 1. Crear Google Sheet
+- Ve a [Google Sheets](https://sheets.google.com)
+- Crea una nueva hoja de cálculo
+- Copia el ID de la hoja (está en la URL entre `/d/` y `/edit`)
 
-## 🗃️ Estructura de Base de Datos
+### 2. Configurar Google Apps Script
+- Ve a [Google Apps Script](https://script.google.com)
+- Crea un nuevo proyecto
+- Copia el código del archivo `src/scripts/google-apps-script.js`
+- Reemplaza `TU_SHEET_ID_AQUI` con el ID de tu hoja
+- Guarda el proyecto
 
-### Tabla `users`
-- `id`: ID único del usuario
-- `email`: Email de Gmail del usuario
-- `name`: Nombre extraído del email
-- `is_admin`: Si es administrador
-- `created_at`: Fecha de registro
+### 3. Desplegar como Web App
+- Clic en "Desplegar" > "Nueva implementación"
+- Tipo: "Aplicación web"
+- Ejecutar como: "Yo"
+- Quién tiene acceso: "Cualquiera"
+- Clic en "Desplegar"
+- Autoriza los permisos cuando se solicite
+- Copia la URL del Web App
 
-### Tabla `game_scores`
-- `id`: ID único de la puntuación
-- `user_id`: Referencia al usuario
-- `reaction_time`: Tiempo de reacción en milisegundos
-- `score`: Puntuación obtenida
-- `game_type`: Tipo de juego (default: 'reflex')
-- `created_at`: Fecha del juego
+### 4. Configurar en el Frontend
+```bash
+# Crear archivo .env en la raíz del proyecto
+echo "REACT_APP_GOOGLE_SCRIPT_URL=tu_url_del_web_app_aqui" > .env
+```
 
-## 🔧 API Endpoints
+### 5. Estructura de la Hoja
+La hoja creará automáticamente las siguientes columnas:
+- **Email**: Email del jugador
+- **Nombre**: Nombre del jugador
+- **Fecha Registro**: Cuándo se registró por primera vez
+- **Mejor Score**: Mejor tiempo de reacción
+- **Partidas Jugadas**: Total de partidas
+- **Última Actualización**: Última vez que jugó
 
-### Autenticación
-- `POST /api/auth/login` - Login con email
-- `GET /api/auth/verify` - Verificar token JWT
+## 🛠️ Tecnologías
 
-### Juego
-- `POST /api/game/score` - Guardar puntuación
-- `GET /api/game/scores` - Obtener puntuaciones del usuario
-- `GET /api/game/stats` - Obtener estadísticas del usuario
+- **React 18** con TypeScript
+- **CSS3** con animaciones personalizadas
+- **Local Storage** para persistencia de datos
+- **Google Apps Script** para integración opcional con Sheets
 
-### Administración (requiere permisos de admin)
-- `GET /api/admin/dashboard` - Dashboard de administración
-- `GET /api/admin/leaderboard` - Leaderboard global
-- `GET /api/admin/users` - Lista de usuarios
-- `GET /api/admin/users/:userId` - Detalles de usuario específico
+## 📱 Funcionalidades
 
-## 🔒 Seguridad
+### Dashboard
+- **Estadísticas Generales**: Mejores tiempos, promedio, total de partidas
+- **Historial Detallado**: Últimas 10 partidas con análisis
+- **Análisis de Progreso**: Gráficos de mejora y consistencia
+- **Comparación**: Ve cómo te comparas con otros jugadores
 
-- Validación de emails de Gmail con regex
-- Autenticación JWT con expiración
-- Sanitización de entradas
-- Headers de seguridad con Helmet
-- CORS configurado
+### Gestión de Datos
+- **Backup**: Exporta todos tus datos en formato JSON
+- **Restore**: Importa datos desde un backup
+- **Reset**: Reinicia todas las estadísticas
+- **Sincronización**: Los datos se envían automáticamente a Google Sheets (si está configurado)
 
-## 📱 Responsive Design
+### Controles
+- **Teclado**: `ESPACIO` para jugar y navegar
+- **Ratón/Touch**: Clic en botones para todas las acciones
+- **Responsive**: Optimizado para móviles y tablets
 
-La aplicación está completamente optimizada para:
-- Desktop (1200px+)
-- Tablet (768px - 1199px)
-- Mobile (< 768px)
+## 🎨 Estructura del Proyecto
+
+```
+f1-game-website/
+├── src/
+│   ├── components/
+│   │   ├── GameComponent.tsx    # Componente principal del juego
+│   │   ├── Dashboard.tsx        # Dashboard con estadísticas
+│   │   ├── LoginForm.tsx        # Formulario de login
+│   │   └── AdminPanel.tsx       # Panel de administración
+│   ├── services/
+│   │   ├── localData.ts         # Manejo de localStorage
+│   │   └── googleSheets.ts      # Integración con Google Sheets
+│   ├── scripts/
+│   │   └── google-apps-script.js # Script para Google Apps Script
+│   └── App.tsx                  # Componente principal
+├── public/
+├── build/                       # Build de producción
+└── package.json
+```
+
+## 🚀 Comandos Disponibles
+
+```bash
+# Desarrollo
+npm start          # Inicia el servidor de desarrollo
+npm test           # Ejecuta los tests
+npm run build      # Crea el build de producción
+
+# Deployment
+npm run build      # Prepara para producción
+# Luego sube la carpeta build/ a tu hosting favorito
+```
+
+## 🌐 Deployment
+
+El proyecto es 100% frontend, por lo que puedes desplegarlo en cualquier servicio de hosting estático:
+
+- **Netlify**: Arrastra la carpeta `build/`
+- **Vercel**: Conecta tu repositorio de GitHub
+- **GitHub Pages**: Configura desde el repositorio
+- **Firebase Hosting**: `firebase deploy`
 
 ## 🤝 Contribuir
 
 1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+2. Crea una branch para tu feature (`git checkout -b feature/AmazingFeature`)
 3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
+4. Push a la branch (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia ISC.
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
 
-## 🐛 Reportar Bugs
-
-Si encuentras algún bug, por favor crea un issue describiendo:
-- Pasos para reproducir el bug
-- Comportamiento esperado vs actual
-- Screenshots si es necesario
-- Información del navegador/sistema
-
-## ✨ Mejoras Futuras
+## 🎯 Roadmap
 
 - [ ] Modo multijugador en tiempo real
-- [ ] Diferentes tipos de juegos de reflejos
-- [ ] Achievements y badges
-- [ ] Modo oscuro
-- [ ] Exportar estadísticas
-- [ ] Notificaciones push
+- [ ] Logros y medallas
+- [ ] Sonidos y efectos de F1
+- [ ] Modo entrenamiento con dificultades
+- [ ] Análisis más detallado de estadísticas
 - [ ] Integración con redes sociales
 
 ---
 
-¡Disfruta probando tus reflejos! 🎮⚡
+**¡Desarrollado con ❤️ para los fanáticos de la Fórmula 1!**

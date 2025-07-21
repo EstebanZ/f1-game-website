@@ -1,0 +1,534 @@
+/* GameComponent.css - F1 Minimalist Theme - Updated Bullets */
+.game-container {
+  width: 100%;
+  height: 100vh; /* Usar viewport height en lugar de 100% */
+  margin: 0;
+  padding: clamp(1rem, 3vw, 2rem);
+  background: transparent; /* Sin fondo de caja */
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Mantener sin scroll */
+  box-sizing: border-box;
+  position: relative;
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: clamp(1rem, 3vw, 1.5rem);
+  padding: 0;
+}
+
+.game-header h2 {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  margin-bottom: 0.5rem;
+  background: linear-gradient(45deg, #e10600, #ff1e00, #ffffff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.player-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(225, 6, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(225, 6, 0, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.player-info span {
+  font-weight: 600;
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  text-align: center;
+}
+
+/* Luces de F1 */
+.f1-lights-display {
+  text-align: center;
+  margin: 1rem 0;
+  flex-shrink: 0;
+}
+
+.lights-container {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  margin-bottom: 1rem;
+}
+
+.f1-light {
+  width: clamp(40px, 8vw, 60px);
+  height: clamp(40px, 8vw, 60px);
+  border-radius: 8px; /* Más cuadrado como en F1 real */
+  border: 3px solid #2a2a2a;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+}
+
+.f1-light.off {
+  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+  box-shadow: 
+    inset 0 2px 4px rgba(0,0,0,0.8),
+    0 0 0 1px rgba(255,255,255,0.1);
+}
+
+.f1-light.on {
+  background: linear-gradient(145deg, #ff1e00, #e10600);
+  box-shadow: 
+    0 0 20px #e10600,
+    0 0 40px #ff1e00,
+    0 0 60px rgba(225, 6, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  border-color: #ff4444;
+  animation: f1LightPulse 0.3s ease-in-out;
+}
+
+@keyframes f1LightPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.lights-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e10600;
+  margin-top: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(225, 6, 0, 0.5);
+}
+
+/* Estado del juego */
+.game-status {
+  text-align: center;
+  margin: 1rem 0;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.status-message {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.status-message.waiting {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.status-message.countdown {
+  color: #ffa500;
+  text-shadow: 0 0 15px rgba(255, 165, 0, 0.8);
+  font-weight: 900;
+}
+
+.status-message.go {
+  color: #00ff00;
+  font-size: 2.5rem;
+  text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+  animation: f1GoFlash 0.3s ease-in-out;
+  font-weight: 900;
+}
+
+.status-message.clicked {
+  color: #e10600;
+  text-shadow: 0 0 15px rgba(225, 6, 0, 0.8);
+}
+
+.status-message.tooEarly {
+  color: #ff0000;
+  text-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+  animation: f1Shake 0.5s ease-in-out;
+}
+
+@keyframes pulseMessage {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+@keyframes f1GoFlash {
+  0%, 100% { 
+    opacity: 1; 
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+  }
+  50% { 
+    opacity: 0.5; 
+    text-shadow: 0 0 40px rgba(0, 255, 0, 1);
+  }
+}
+
+@keyframes f1Shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-15px) rotate(-2deg); }
+  30% { transform: translateX(15px) rotate(2deg); }
+  45% { transform: translateX(-10px) rotate(-1deg); }
+  60% { transform: translateX(10px) rotate(1deg); }
+  75% { transform: translateX(-5px); }
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.action-prompt {
+  margin-top: 1rem;
+}
+
+.space-indicator {
+  background: linear-gradient(145deg, #00ff00, #32cd32);
+  color: #000000;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  border: 2px solid #ffffff;
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: f1SpaceGlow 1s infinite alternate;
+}
+
+@keyframes f1SpaceGlow {
+  from {
+    box-shadow: 
+      0 0 30px rgba(0, 255, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  to {
+    box-shadow: 
+      0 0 50px rgba(0, 255, 0, 0.9),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* Resultados */
+.game-results {
+  background: transparent; /* Sin caja */
+  padding: clamp(1rem, 3vw, 2rem) 0;
+  margin: clamp(1rem, 3vw, 2rem) 0;
+  text-align: center;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: clamp(0.75rem, 2vw, 1rem) 0;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(225, 6, 0, 0.3); /* F1 red subtle line */
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-label {
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: rgba(255,255,255,0.8);
+  font-weight: 500;
+}
+
+.result-value {
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  font-weight: 700;
+  color: #e10600; /* F1 red for values */
+  text-shadow: 0 0 10px rgba(225, 6, 0, 0.5);
+}
+
+/* Controles - Minimalista */
+.game-controls {
+  text-align: center;
+  margin: clamp(1.5rem, 4vw, 2rem) 0;
+  padding: 0;
+}
+
+.start-btn, .reset-btn {
+  background: linear-gradient(145deg, #e10600, #ff1e00, #e10600);
+  color: white;
+  border: none; /* Sin bordes */
+  padding: clamp(1rem, 3vw, 1.25rem) clamp(2rem, 5vw, 3rem);
+  font-size: clamp(1.1rem, 3vw, 1.3rem);
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(225, 6, 0, 0.3); /* Sombra sutil */
+}
+
+.start-btn:hover, .reset-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(225, 6, 0, 0.5);
+}
+
+.reset-btn {
+  background: linear-gradient(45deg, #666, #999); /* Gris minimalista */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.reset-btn:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Instrucciones - Mantenidas pero simplificadas */
+.game-instructions {
+  background: transparent; /* Sin caja de fondo */
+  padding: clamp(1rem, 3vw, 1.5rem) 0;
+  margin: clamp(1rem, 3vw, 1.5rem) 0;
+  flex-shrink: 1;
+  overflow: visible; /* Eliminar scroll siempre */
+  border-top: 2px solid rgba(225, 6, 0, 0.3); /* Solo línea superior F1 */
+  text-align: left; /* Alinear contenido a la izquierda */
+}
+
+.game-instructions h3 {
+  color: #e10600; /* F1 red para títulos */
+  margin-bottom: 1rem;
+  font-size: clamp(1.2rem, 3vw, 1.4rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left; /* Título alineado a la izquierda */
+}
+
+.game-instructions ol {
+  list-style: none;
+  counter-reset: step-counter;
+  padding-left: 0;
+  text-align: left; /* Alinear texto a la izquierda */
+}
+
+.game-instructions ol li {
+  counter-increment: step-counter;
+  margin: 0.8rem 0;
+  padding-left: 2rem; /* Espacio para el bullet */
+  margin-left: 0; /* Sin margin izquierdo */
+  position: relative;
+  text-align: left; /* Alinear texto a la izquierda */
+}
+
+.game-instructions ol li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0; /* Posición en el inicio */
+  top: 0;
+  background: linear-gradient(145deg, #e10600, #ff1e00);
+  color: white;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.7rem;
+  box-shadow: 0 2px 8px rgba(225, 6, 0, 0.4);
+}
+
+.game-instructions kbd {
+  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+  color: #ffffff;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #e10600;
+  border-radius: 5px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.tips h4 {
+  color: #e10600;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 10px rgba(225, 6, 0, 0.5);
+}
+
+.tips ul {
+  list-style: none;
+  padding-left: 0;
+  text-align: left; /* Alinear texto a la izquierda */
+}
+
+.tips ul li {
+  margin: 0.8rem 0; /* Mismo espaciado que ol li */
+  padding-left: 2rem; /* Mismo padding que ol li */
+  margin-left: 0; /* Sin margin izquierdo */
+  position: relative;
+  text-align: left; /* Alinear texto a la izquierda */
+}
+
+.tips ul li::before {
+  content: "💡";
+  position: absolute;
+  left: 0; /* Misma posición que ol li::before */
+  top: 0;
+  width: 1.2rem; /* Mismo ancho para consistencia */
+  height: 1.2rem; /* Misma altura para consistencia */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem; /* Tamaño consistente */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .game-container {
+    padding: 1rem;
+  }
+  
+  .player-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .lights-container {
+    gap: 0.5rem;
+  }
+  
+  .f1-light {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .game-header h2 {
+    font-size: 2rem;
+  }
+  
+  .status-message {
+    font-size: 1.4rem;
+  }
+  
+  /* Ajuste de bullets para móviles */
+  .game-instructions ol li {
+    padding-left: 1.8rem; /* Espacio para el bullet en móviles */
+  }
+  
+  .game-instructions ol li::before {
+    left: 0; /* Mantener bullet al inicio */
+    width: 1.3rem;
+    height: 1.3rem;
+    font-size: 0.7rem;
+  }
+  
+  .tips ul li {
+    padding-left: 1.8rem; /* Mismo espaciado que ol li en móviles */
+  }
+  
+  .tips ul li::before {
+    left: 0; /* Mantener icono al inicio */
+    width: 1.3rem;
+    height: 1.3rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Controles mejorados - Minimalista */
+.space-hint {
+  text-align: center;
+  margin-top: clamp(1rem, 3vw, 1.5rem);
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  color: rgba(255, 255, 255, 0.7);
+  animation: pulse 1.5s infinite;
+}
+
+.space-hint kbd {
+  background: transparent; /* Sin fondo */
+  border: 1px solid rgba(225, 6, 0, 0.5); /* Solo borde F1 sutil */
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #e10600;
+  font-weight: 700;
+}
+
+.countdown-warning {
+  text-align: center;
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: #ff6b6b;
+  font-weight: 700;
+  animation: pulse 1s infinite;
+  background: transparent; /* Sin caja de fondo */
+  padding: 1rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02); /* Reducido de 1.05 a 1.02 */
+  }
+}
+
+/* Layout responsivo */
+@media (min-width: 1200px) {
+  .game-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto 1fr;
+    gap: 1rem;
+    grid-template-areas:
+      "header header"
+      "lights lights" 
+      "game-area instructions";
+  }
+  
+  .game-header {
+    grid-area: header;
+  }
+  
+  .f1-lights-display {
+    grid-area: lights;
+  }
+  
+  .game-main-area {
+    grid-area: game-area;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .game-instructions {
+    grid-area: instructions;
+    margin: 0;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .player-info {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .lights-container {
+    gap: 1.5rem;
+  }
+}
