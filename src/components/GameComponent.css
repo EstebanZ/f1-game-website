@@ -198,20 +198,122 @@
   margin-top: 1rem;
 }
 
-.space-indicator {
+/* Botón universal para acciones principales */
+.action-button {
+  background: linear-gradient(145deg, #e10600, #ff1e00, #e10600);
+  color: white;
+  border: 2px solid #ffffff;
+  padding: clamp(1rem, 3vw, 1.25rem) clamp(2rem, 5vw, 3rem);
+  font-size: clamp(1.1rem, 3vw, 1.3rem);
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(225, 6, 0, 0.3);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent; /* Eliminar highlight en mobile */
+  touch-action: manipulation; /* Optimizar para touch */
+  min-height: 50px; /* Tamaño mínimo para touch en mobile */
+  min-width: 120px;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(225, 6, 0, 0.5);
+}
+
+.action-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(225, 6, 0, 0.4);
+}
+
+/* Botón de reacción específico */
+.space-indicator.action-button {
   background: linear-gradient(145deg, #00ff00, #32cd32);
   color: #000000;
-  padding: 1rem 2rem;
-  border-radius: 8px;
   border: 2px solid #ffffff;
-  font-size: 1.5rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  box-shadow: 
-    0 0 30px rgba(0, 255, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
   animation: f1SpaceGlow 1s infinite alternate;
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
+}
+
+.space-indicator.action-button:hover {
+  background: linear-gradient(145deg, #32cd32, #00ff00);
+}
+
+/* Botón de countdown específico (early start) */
+.countdown-button.action-button {
+  background: linear-gradient(145deg, #ff6b6b, #ff4444);
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  animation: f1CountdownGlow 1s infinite alternate;
+  font-size: clamp(1rem, 3vw, 1.2rem);
+}
+
+.countdown-button.action-button:hover {
+  background: linear-gradient(145deg, #ff4444, #ff2222);
+}
+
+@keyframes f1CountdownGlow {
+  from {
+    box-shadow: 
+      0 0 30px rgba(255, 107, 107, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  to {
+    box-shadow: 
+      0 0 50px rgba(255, 107, 107, 0.9),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* Botón de reinicio específico */
+.restart-button.action-button {
+  animation: f1RestartGlow 1.5s infinite alternate;
+}
+
+/* Hints de control para diferentes plataformas */
+.control-hints {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  opacity: 0.8;
+}
+
+.mobile-hint, .desktop-hint {
+  text-align: center;
+  padding: 0.5rem;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Mostrar solo mobile hint en pantallas pequeñas */
+@media (max-width: 768px) {
+  .desktop-hint {
+    display: none;
+  }
+  
+  .mobile-hint {
+    background: rgba(225, 6, 0, 0.2);
+    border: 1px solid rgba(225, 6, 0, 0.3);
+  }
+}
+
+/* Mostrar solo desktop hint en pantallas grandes */
+@media (min-width: 769px) {
+  .mobile-hint {
+    display: none;
+  }
+  
+  .desktop-hint {
+    background: rgba(0, 100, 200, 0.2);
+    border: 1px solid rgba(0, 100, 200, 0.3);
+  }
 }
 
 @keyframes f1SpaceGlow {
@@ -227,8 +329,8 @@
   }
 }
 
-/* Botón de reinicio */
-.restart-button {
+/* Mantener la clase original por compatibilidad, pero heredar de action-button */
+.restart-button:not(.action-button) {
   background: linear-gradient(145deg, #e10600, #ff1e00);
   color: #ffffff;
   padding: 1rem 2rem;
@@ -244,6 +346,7 @@
   animation: f1RestartGlow 1.5s infinite alternate;
   transition: all 0.3s ease;
   user-select: none;
+  cursor: pointer;
 }
 
 .restart-button:hover {
@@ -316,7 +419,7 @@
   padding: 0;
 }
 
-.start-btn, .reset-btn {
+.start-btn:not(.action-button), .reset-btn {
   background: linear-gradient(145deg, #e10600, #ff1e00, #e10600);
   color: white;
   border: none; /* Sin bordes */
@@ -333,7 +436,7 @@
   box-shadow: 0 4px 15px rgba(225, 6, 0, 0.3); /* Sombra sutil */
 }
 
-.start-btn:hover, .reset-btn:hover {
+.start-btn:not(.action-button):hover, .reset-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(225, 6, 0, 0.5);
 }
@@ -495,26 +598,6 @@
     height: 1.3rem;
     font-size: 0.8rem;
   }
-}
-
-/* Controles mejorados - Minimalista */
-.space-hint {
-  text-align: center;
-  margin-top: clamp(1rem, 3vw, 1.5rem);
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-  color: rgba(255, 255, 255, 0.7);
-  animation: pulse 1.5s infinite;
-}
-
-.space-hint kbd {
-  background: transparent; /* Sin fondo */
-  border: 1px solid rgba(225, 6, 0, 0.5); /* Solo borde F1 sutil */
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  color: #e10600;
-  font-weight: 700;
 }
 
 .countdown-warning {

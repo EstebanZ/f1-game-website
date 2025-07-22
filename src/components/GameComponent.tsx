@@ -162,7 +162,7 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
 
   const handleSpacePress = useCallback(() => {
     if (gameState === 'waiting') {
-      // Iniciar el juego con la barra espaciadora
+      // Iniciar el juego
       startGame();
     } else if (gameState === 'clicked' || gameState === 'tooEarly') {
       // Reiniciar el juego después de completar una partida
@@ -247,30 +247,39 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
         {/* Estado del juego */}
         <div className="game-status">
           <div className={`status-message ${gameState}`}>
-            {message || (gameState === 'waiting' ? 'Presiona ESPACIO para comenzar el procedimiento F1' : '')}
+            {message || (gameState === 'waiting' ? 'Presiona el botón o ESPACIO para comenzar' : '')}
           </div>
           
           {gameState === 'go' && (
             <div className="action-prompt">
-              <div 
-                className="space-indicator"
+              <button 
+                className="action-button space-indicator"
                 onClick={handleSpacePress}
-                style={{ cursor: 'pointer' }}
               >
-                PRESIONA ESPACIO
-              </div>
+                ¡REACCIONA AHORA!
+              </button>
+            </div>
+          )}
+          
+          {gameState === 'countdown' && (
+            <div className="action-prompt">
+              <button 
+                className="action-button countdown-button"
+                onClick={handleSpacePress}
+              >
+                ⚠️ TOCA PARA EARLY START
+              </button>
             </div>
           )}
           
           {(gameState === 'clicked' || gameState === 'tooEarly') && (
             <div className="action-prompt">
-              <div 
-                className="restart-button"
+              <button 
+                className="action-button restart-button"
                 onClick={handleSpacePress}
-                style={{ cursor: 'pointer' }}
               >
-                🏁 PRESIONA ESPACIO PARA OTRA CARRERA
-              </div>
+                🏁 NUEVA CARRERA
+              </button>
             </div>
           )}
         </div>
@@ -292,30 +301,23 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
         {/* Controles */}
         <div className="game-controls">
           {gameState === 'waiting' && (
-            <>
-              <button 
-                className="start-btn"
-                onClick={startGame}
-              >
-                🏁 INICIAR PROCEDIMIENTO F1
-              </button>
-              <div className="space-hint">
-                O presiona <kbd>ESPACIO</kbd>
-              </div>
-            </>
+            <button 
+              className="start-btn action-button"
+              onClick={startGame}
+            >
+              🏁 INICIAR PROCEDIMIENTO F1
+            </button>
           )}
           
-          {(gameState === 'clicked' || gameState === 'tooEarly') && (
-            <div className="space-hint">
-              Presiona <kbd>ESPACIO</kbd> para otra carrera
+          {/* Siempre mostrar ayuda adaptada a la plataforma */}
+          <div className="control-hints">
+            <div className="mobile-hint">
+              📱 <strong>Móvil:</strong> Usa los botones para cada acción
             </div>
-          )}
-          
-          {gameState === 'countdown' && (
-            <div className="countdown-warning">
-              ⚠️ ¡Espera a que se apaguen todas las luces!
+            <div className="desktop-hint">
+              💻 <strong>PC:</strong> <kbd>ESPACIO</kbd> para todo o usa los botones
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -323,18 +325,21 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
       <div className="game-instructions">
         <h3>🏁 PROTOCOLO DE LARGADA F1</h3>
         <ol>
-          <li>Presiona <kbd>ESPACIO</kbd> para comenzar el procedimiento de largada</li>
+          <li><strong>Iniciar:</strong> Toca el botón 🏁 o presiona <kbd>ESPACIO</kbd></li>
           <li>Las 5 luces rojas se encenderán en secuencia (como en F1 real)</li>
+          <li><strong>Durante countdown:</strong> Puedes hacer early start tocando el botón ⚠️ o presionando <kbd>ESPACIO</kbd></li>
           <li>Cuando TODAS las luces se apaguen: ¡REACCIONA INMEDIATAMENTE!</li>
-          <li>Después de cada vuelta, presiona <kbd>ESPACIO</kbd> para otra largada</li>
-          <li>⚠️ SALIDA EN FALSO = Penalización (como en F1 real)</li>
+          <li><strong>Reaccionar:</strong> Toca "¡REACCIONA AHORA!" o presiona <kbd>ESPACIO</kbd></li>
+          <li><strong>Nueva carrera:</strong> Toca "🏁 NUEVA CARRERA" o presiona <kbd>ESPACIO</kbd></li>
+          <li>⚠️ EARLY START = Penalización (como en F1 real)</li>
         </ol>
         
         <div className="tips">
           <h4>🏎️ CONSEJOS DE PILOTOS F1:</h4>
           <ul>
-            <li>Mantén el dedo sobre <kbd>ESPACIO</kbd> como un piloto profesional</li>
-            <li>Concéntrate SOLO en el momento que se apagan las luces</li>
+            <li><strong>📱 Móvil:</strong> Mantén el dedo listo sobre los botones - cada estado tiene su botón específico</li>
+            <li><strong>💻 PC:</strong> Mantén el dedo sobre <kbd>ESPACIO</kbd> como un piloto profesional, o usa los botones</li>
+            <li><strong>Ambos:</strong> Concéntrate SOLO en el momento que se apagan las luces</li>
             <li>Hamilton y Verstappen reaccionan en ~180-220ms</li>
             <li>¡La consistencia es clave para ser campeón!</li>
           </ul>

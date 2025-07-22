@@ -30,7 +30,7 @@ function App() {
         stats = createPlayer(userData.email, userData.name);
       }
       setPlayerStats(stats);
-      setCurrentView('dashboard');
+      setCurrentView('game'); // Cambiar a 'game' en lugar de 'dashboard'
     }
   }, []);
 
@@ -44,7 +44,7 @@ function App() {
       stats = createPlayer(userData.email, userData.name);
     }
     setPlayerStats(stats);
-    setCurrentView('dashboard');
+    setCurrentView('game'); // Cambiar a 'game' en lugar de 'dashboard'
   };
 
   const handleLogout = () => {
