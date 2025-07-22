@@ -160,12 +160,80 @@
   flex: 1;
   background: linear-gradient(135deg, #0d1117 0%, #15151e 50%, #1e1e2e 100%);
   padding: 0; /* Sin padding para evitar scroll doble */
-  overflow: hidden; /* Sin scroll en el contenedor principal */
+  overflow-y: auto; /* Scroll vertical unificado aquí */
+  overflow-x: hidden; /* Sin scroll horizontal */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   width: 100%;
-  height: calc(100vh - 84px); /* Altura exacta sin scroll */
+  height: calc(100vh - 84px); /* Altura exacta */
+}
+
+/* Scrollbar F1 unificado para toda la aplicación */
+.App-main::-webkit-scrollbar {
+  width: 12px;
+}
+
+.App-main::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.App-main::-webkit-scrollbar-thumb {
+  background: linear-gradient(145deg, #e10600, #ff1e00);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 
+    0 2px 4px rgba(225, 6, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.App-main::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(145deg, #ff1e00, #e10600);
+  box-shadow: 
+    0 4px 8px rgba(225, 6, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.App-main::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(145deg, #c40500, #e10600);
+}
+
+/* Firefox scrollbar */
+.App-main {
+  scrollbar-width: thin;
+  scrollbar-color: #e10600 rgba(0, 0, 0, 0.4);
+}
+
+/* Mantener scrollbar consistente en todas las pantallas */
+@media (max-width: 768px) {
+  .App-main::-webkit-scrollbar {
+    width: 12px; /* Mismo ancho que desktop */
+  }
+  
+  .App-main::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .App-main::-webkit-scrollbar-thumb {
+    background: linear-gradient(145deg, #e10600, #ff1e00);
+    border-radius: 10px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 
+      0 2px 4px rgba(225, 6, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  
+  .App-main::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(145deg, #ff1e00, #e10600);
+    box-shadow: 
+      0 4px 8px rgba(225, 6, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
 }
 
 /* Responsive - Completamente mejorado con hamburguesa */
@@ -197,7 +265,7 @@
     display: none;
   }
   
-  /* Menu mobile */
+  /* Menu mobile con mejor organización */
   .nav-menu {
     position: absolute;
     top: 100%;
@@ -214,6 +282,8 @@
     visibility: hidden;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 999;
+    /* Reorganización mejorada */
+    order: 1;
   }
   
   .nav-menu.mobile-open {
@@ -224,59 +294,95 @@
   
   .nav-menu button {
     width: 100%;
-    padding: 1rem 1.5rem;
+    padding: 1.2rem 1.5rem;
     border: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0;
     text-align: left;
-    font-size: 0.9rem;
+    font-size: 1rem;
     background: transparent;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.8rem;
+    font-weight: 600;
   }
   
   .nav-menu button:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     transform: none;
     box-shadow: none;
+    padding-left: 2rem;
   }
   
   .nav-menu button.active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
     border-left: 4px solid white;
+    color: white;
+    font-weight: 700;
   }
   
-  /* Usuario móvil */
+  .nav-menu button:last-child {
+    border-bottom: none;
+  }
+  
+  /* Usuario móvil mejorado */
   .mobile-user-section {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
-    border-top: 2px solid rgba(255, 255, 255, 0.2);
-    background: rgba(0, 0, 0, 0.2);
-    margin-top: 0.5rem;
+    padding: 1.5rem 1.5rem;
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+    position: relative;
+  }
+  
+  .mobile-user-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 1.5rem;
+    right: 1.5rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
   }
   
   .mobile-user-section span {
     color: white;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .mobile-user-section span::before {
+    content: '🏎️';
+    font-size: 1.2rem;
   }
   
   .mobile-user-section .logout-btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.8rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     color: white;
-    border-radius: 4px;
+    border-radius: 8px;
     transition: all 0.3s ease;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
   
   .mobile-user-section .logout-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
   }
   
   /* Usuario en menu mobile */
