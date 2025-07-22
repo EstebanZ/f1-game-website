@@ -69,20 +69,6 @@ export const registerPlayerInGoogleSheets = async (playerData: PlayerData): Prom
 };
 
 /**
- * Función para enviar solo email y nombre (registro inicial)
- */
-export const registerEmailInGoogleSheets = async (email: string, name?: string): Promise<GoogleSheetsResponse> => {
-  const playerData: PlayerData = {
-    email,
-    name: name || email.split('@')[0], // Usar parte del email como nombre por defecto
-    bestScore: 0,
-    gamesPlayed: 0
-  };
-
-  return registerPlayerInGoogleSheets(playerData);
-};
-
-/**
  * Función legacy que mantiene compatibilidad con código existente
  */
 export const sendPlayerDataToGoogleSheets = async (

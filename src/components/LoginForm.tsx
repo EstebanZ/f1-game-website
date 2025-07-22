@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import './LoginForm.css';
 import { getPlayerData, createPlayer, PlayerStats } from '../services/localData';
-import { registerEmailInGoogleSheets } from '../services/googleSheets';
 
 interface LoginFormProps {
   onLogin: (user: { email: string; name: string }, stats: PlayerStats) => void;
@@ -70,13 +69,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
         const playerName = name.trim() || 'Usuario';
         playerStats = createPlayer(emailLower, playerName);
         
-        // Registrar en Google Sheets (no bloquear si falla)
-        try {
-          await registerEmailInGoogleSheets(emailLower);
-          console.log('✅ Email registrado en Google Sheets');
-        } catch (sheetError) {
-          console.warn('⚠️ No se pudo registrar en Google Sheets:', sheetError);
-        }
+        // No registrar en Google Sheets aquí - se hará al completar el primer juego
+        console.log('✅ Nuevo usuario creado localmente:', playerName);
       }
       
       // Login exitoso
