@@ -19,7 +19,6 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
   const [message, setMessage] = useState('');
   const [lightsOn, setLightsOn] = useState<number>(0);
   const countdownTimeouts = useRef<NodeJS.Timeout[]>([]);
-  const [globalBestTime, setGlobalBestTime] = useState<number | null>(null);
 
   const calculateScore = (reactionTimeMs: number): number => {
     // Puntuación basada en tiempo de reacción (más realista para F1)
@@ -45,42 +44,6 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     if (reactionTimeMs < 500) return "🎯 Necesitas más práctica en el simulador";
     if (reactionTimeMs < 600) return "⏱️ Tiempo amateur - ¡Entrena más!";
     return "🐌 Tiempo de domingo por la mañana - ¡Mucha práctica necesaria!";
-  };
-
-  // Función para obtener el mejor tiempo global
-  const fetchGlobalBestTime = async () => {
-    try {
-      const scriptUrl = process.env.REACT_APP_GOOGLE_SCRIPT_URL;
-      if (!scriptUrl) {
-        console.warn('URL del Google Script no configurada, usando datos locales para mejor tiempo global');
-        // Fallback: usar datos locales para obtener el mejor tiempo
-        const data = localStorage.getItem('f1-reflex-game-data');
-        if (data) {
-          const allPlayers = JSON.parse(data);
-          let globalBest = Infinity;
-          Object.values(allPlayers).forEach((player: any) => {
-            if (player.bestReactionTime && player.bestReactionTime !== Infinity && player.bestReactionTime > 0) {
-              globalBest = Math.min(globalBest, player.bestReactionTime);
-            }
-          });
-          setGlobalBestTime(globalBest === Infinity ? null : globalBest);
-        }
-        return;
-      }
-      
-      const response = await fetch(`${scriptUrl}?action=getGlobalStats`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.globalBestTime > 0) {
-          setGlobalBestTime(data.globalBestTime);
-        } else {
-          setGlobalBestTime(null);
-        }
-      }
-    } catch (error) {
-      console.warn('No se pudo obtener el mejor tiempo global:', error);
-      setGlobalBestTime(null);
-    }
   };
 
   const saveScore = useCallback(async (reactionTimeMs: number, gameScore: number) => {
@@ -110,9 +73,6 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
             gamesPlayed: newStats.totalGames
           });
           console.log('✅ Estadísticas actualizadas en Google Sheets con mejor tiempo:', gameStats?.bestReactionTime);
-          
-          // Actualizar el mejor tiempo global después de subir a Sheets
-          fetchGlobalBestTime();
         } catch (sheetError) {
           console.warn('⚠️ No se pudieron actualizar las estadísticas en Google Sheets:', sheetError);
         }
