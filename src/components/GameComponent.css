@@ -1,15 +1,15 @@
 /* GameComponent.css - F1 Minimalist Theme - Updated Bullets */
 .game-container {
   width: 100%;
-  height: 100%; /* Usar toda la altura disponible */
+  /* Sin altura fija - permitir que crezca naturalmente */
   margin: 0;
   padding: clamp(1rem, 3vw, 2rem);
   background: transparent; /* Sin fondo de caja */
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Permitir scroll vertical */
-  overflow-x: hidden; /* Evitar scroll horizontal */
+  /* Sin scroll interno - usar solo el scroll principal del App-main */
+  overflow: visible;
   box-sizing: border-box;
   position: relative;
 }

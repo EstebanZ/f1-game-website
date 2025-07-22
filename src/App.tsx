@@ -34,15 +34,11 @@ function App() {
     }
   }, []);
 
-  const handleLogin = (userData: User) => {
+  const handleLogin = (userData: User, stats: PlayerStats) => {
     setUser(userData);
     localStorage.setItem('f1-game-user', JSON.stringify(userData));
     
-    // Obtener o crear playerStats
-    let stats = getPlayerData(userData.email);
-    if (!stats) {
-      stats = createPlayer(userData.email, userData.name);
-    }
+    // Usar las stats que ya vienen del LoginForm
     setPlayerStats(stats);
     setCurrentView('game'); // Cambiar a 'game' en lugar de 'dashboard'
   };

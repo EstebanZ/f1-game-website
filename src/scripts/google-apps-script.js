@@ -230,8 +230,6 @@ function registerOrUpdatePlayer(sheet, data) {
       gamesPlayed: gamesPlayed
     });
     
-    sheet.appendRow(newRow);
-    
     return {
       success: true,
       action: 'created',

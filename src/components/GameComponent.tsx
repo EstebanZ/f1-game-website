@@ -19,6 +19,16 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
   const [message, setMessage] = useState('');
   const [lightsOn, setLightsOn] = useState<number>(0);
   const countdownTimeouts = useRef<NodeJS.Timeout[]>([]);
+  const isStartingRef = useRef<boolean>(false);
+  const lastSaveRef = useRef<string>(''); // Para evitar guardados duplicados
+
+  // Solo log en desarrollo y evitar duplicados de StrictMode
+  const logRender = useRef<string>('');
+  const currentRenderState = `${gameState}-${lightsOn}-${message}`;
+  if (process.env.NODE_ENV === 'development' && logRender.current !== currentRenderState) {
+    console.log('🏗️ Render - gameState:', gameState, 'lightsOn:', lightsOn, 'message:', message);
+    logRender.current = currentRenderState;
+  }
 
   const calculateScore = (reactionTimeMs: number): number => {
     // Puntuación basada en tiempo de reacción (más realista para F1)
@@ -47,10 +57,21 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
   };
 
   const saveScore = useCallback(async (reactionTimeMs: number, gameScore: number) => {
+    // Crear un ID único para esta partida para evitar duplicados
+    const gameId = `${playerStats.email}-${reactionTimeMs}-${gameScore}-${Date.now()}`;
+    
+    // Verificar si ya guardamos esta partida (protección contra React.StrictMode)
+    if (lastSaveRef.current === gameId) {
+      console.log('🛡️ Evitando guardado duplicado para:', gameId);
+      return;
+    }
+    
+    lastSaveRef.current = gameId;
+    
     try {
-      console.log('🔍 Guardando puntuación:', { reactionTimeMs, gameScore, currentBestTime: playerStats.bestReactionTime });
+      console.log('💾 Guardando puntuación:', { reactionTimeMs, gameScore, email: playerStats.email });
       
-      // Guardar localmente
+      // Guardar localmente PRIMERO
       const newStats = addGameScore(playerStats.email, {
         reactionTime: reactionTimeMs,
         score: gameScore,
@@ -59,20 +80,24 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
       });
 
       if (newStats) {
-        console.log('✅ Nuevas estadísticas:', { newBestTime: newStats.bestReactionTime, newBestScore: newStats.bestScore });
         onStatsUpdate(newStats);
         
         // Actualizar en Google Sheets (no bloquear si falla)
         try {
           const gameStats = getGameStats(playerStats.email);
+          console.log('📊 Enviando a Google Sheets:', {
+            email: playerStats.email,
+            bestScore: newStats.bestScore,
+            gamesPlayed: newStats.totalGames
+          });
+          
           await registerPlayerInGoogleSheets({
             email: playerStats.email,
             name: playerStats.name,
             bestScore: newStats.bestScore,
-            bestReactionTime: gameStats?.bestReactionTime || 0, // Usar el tiempo calculado de gameStats
+            bestReactionTime: gameStats?.bestReactionTime || 0,
             gamesPlayed: newStats.totalGames
           });
-          console.log('✅ Estadísticas actualizadas en Google Sheets con mejor tiempo:', gameStats?.bestReactionTime);
         } catch (sheetError) {
           console.warn('⚠️ No se pudieron actualizar las estadísticas en Google Sheets:', sheetError);
         }
@@ -80,14 +105,18 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     } catch (error) {
       console.error('Error guardando puntuación:', error);
     }
-  }, [playerStats.email, playerStats.name, playerStats.bestReactionTime, onStatsUpdate]);
+  }, [playerStats.email, playerStats.name, onStatsUpdate]);
 
   const clearTimeouts = useCallback(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🧹 clearTimeouts called, clearing', countdownTimeouts.current.length, 'timeouts');
+    }
     countdownTimeouts.current.forEach(timeout => clearTimeout(timeout));
     countdownTimeouts.current = [];
   }, []);
 
   const startGame = useCallback(() => {
+    console.log('🚀 startGame called - setting up timeouts');
     clearTimeouts();
     setGameState('countdown');
     setMessage('Preparándose para la salida...');
@@ -98,9 +127,11 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     // Secuencia de luces como en F1
     const timeouts: NodeJS.Timeout[] = [];
     
+    console.log('⏱️ Setting up light timeouts');
     // Encender luces progresivamente (cada 1 segundo exacto como en F1)
     for (let i = 1; i <= 5; i++) {
       const timeout = setTimeout(() => {
+        console.log(`💡 Light ${i} should turn on now`);
         setLightsOn(i);
         setMessage(`Luz ${i} encendida...`);
       }, i * 1000); // 1 segundo exacto entre cada luz
@@ -109,7 +140,9 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     
     // Tiempo aleatorio después de la quinta luz (0.2-2 segundos como en F1 real)
     const randomDelay = Math.random() * 1800 + 200; // 200ms-2000ms
+    console.log(`⏱️ Random delay will be: ${randomDelay}ms`);
     const goTimeout = setTimeout(() => {
+      console.log('🚦 GO! All lights should turn off');
       setLightsOn(0); // Apagar todas las luces instantáneamente
       setGameState('go');
       setMessage('¡GO GO GO!');
@@ -118,7 +151,29 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     
     timeouts.push(goTimeout);
     countdownTimeouts.current = timeouts;
+    console.log('✅ All timeouts set up, total:', timeouts.length);
   }, [clearTimeouts]);
+
+  // Handler separado para el click del botón
+  const handleStartButtonClick = useCallback((e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Prevenir múltiples clicks
+    if (isStartingRef.current) {
+      return;
+    }
+    
+    isStartingRef.current = true;
+    startGame();
+    
+    // Reset flag después de un momento
+    setTimeout(() => {
+      isStartingRef.current = false;
+    }, 1000);
+  }, [startGame]);
 
   const handleSpacePress = useCallback(() => {
     if (gameState === 'waiting') {
@@ -159,10 +214,10 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
 
     window.addEventListener('keydown', handleKeyPress);
     return () => {
+      console.log('🧹 useEffect cleanup - removing event listener only');
       window.removeEventListener('keydown', handleKeyPress);
-      clearTimeouts();
     };
-  }, [handleSpacePress, clearTimeouts]);
+  }, [handleSpacePress]);
 
   return (
     <div className="game-container">
@@ -170,16 +225,32 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
         <h2>🏁 F1 REACTION CHAMPIONSHIP</h2>
         <div className="player-info">
           <span>🏎️ PILOTO: {(() => {
-            const name = userEmail || playerStats.email || 'N/A';
-            const displayName = name.includes('@') ? name.split('@')[0] : name;
+            // Priorizar el nombre real del jugador
+            const displayName = playerStats.name || 
+                               (userEmail && userEmail.includes('@') ? userEmail.split('@')[0] : userEmail) || 
+                               (playerStats.email && playerStats.email.includes('@') ? playerStats.email.split('@')[0] : playerStats.email) || 
+                               'N/A';
             return displayName.toUpperCase();
           })()}</span>
           <span>🏆 RÉCORD: {playerStats.bestScore} pts</span>
           <span>⚡ MEJOR TIEMPO PERSONAL: {(() => {
-            if (!playerStats.bestReactionTime || playerStats.bestReactionTime === Infinity || playerStats.bestReactionTime <= 0) {
+            // Usar getGameStats para obtener el mejor tiempo calculado
+            const gameStats = getGameStats(playerStats.email);
+            const bestTime = gameStats?.bestReactionTime;
+            
+            if (process.env.NODE_ENV === 'development') {
+              console.log('🏎️ Mejor tiempo debug:', {
+                email: playerStats.email,
+                gameStats,
+                bestTime,
+                playerStatsBestTime: playerStats.bestReactionTime
+              });
+            }
+            
+            if (!bestTime || bestTime === Infinity || bestTime <= 0 || !isFinite(bestTime)) {
               return 'N/A';
             }
-            return `${Math.round(playerStats.bestReactionTime)}ms`;
+            return `${Math.round(bestTime)}ms`;
           })()}</span>
         </div>
       </div>
@@ -202,7 +273,7 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
         {/* Estado del juego */}
         <div className="game-status">
           <div className={`status-message ${gameState}`}>
-            {message || (gameState === 'waiting' ? 'Presiona el botón o ESPACIO para comenzar' : '')}
+            {message || (gameState === 'waiting' ? '🏁 Presiona el botón o ESPACIO para iniciar' : '')}
           </div>
           
           {gameState === 'go' && (
@@ -211,18 +282,21 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
                 className="action-button space-indicator"
                 onClick={handleSpacePress}
               >
-                ¡REACCIONA AHORA!
+                ⚡ ¡REACCIONA AHORA! ⚡
               </button>
             </div>
           )}
           
           {gameState === 'countdown' && (
             <div className="action-prompt">
+              <div className="countdown-warning">
+                ⏳ <strong>ESPERA</strong> a que se apaguen TODAS las luces
+              </div>
               <button 
                 className="action-button countdown-button"
                 onClick={handleSpacePress}
               >
-                ⚠️ TOCA PARA EARLY START
+                ⚠️ EARLY START (Penalización)
               </button>
             </div>
           )}
@@ -257,8 +331,9 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
         <div className="game-controls">
           {gameState === 'waiting' && (
             <button 
+              type="button"
               className="start-btn action-button"
-              onClick={startGame}
+              onClick={handleStartButtonClick}
             >
               🏁 INICIAR PROCEDIMIENTO F1
             </button>
