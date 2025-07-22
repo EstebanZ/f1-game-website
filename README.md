@@ -185,6 +185,32 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 - [ ] Análisis más detallado de estadísticas
 - [ ] Integración con redes sociales
 
+## 🚀 Despliegue en GitHub Pages
+
+Este proyecto incluye un GitHub Action que automáticamente despliega la aplicación en GitHub Pages cuando se hace push a la rama `main`.
+
+### Configuración:
+
+1. **Habilitar GitHub Pages**:
+   - Ve a Settings > Pages en tu repositorio de GitHub
+   - En "Source", selecciona "GitHub Actions"
+
+2. **Configurar secretos (opcional)**:
+   - Ve a Settings > Secrets and variables > Actions
+   - Agrega `REACT_APP_GOOGLE_SCRIPT_URL` si usas integración con Google Sheets
+
+3. **Deploy automático**:
+   - Cualquier push a `main` activará el workflow automáticamente
+   - La aplicación estará disponible en: `https://EstebanZ.github.io/f1-game-website`
+
+### Deploy manual:
+```bash
+# Build local para verificar
+npm run build
+
+# El workflow se ejecuta automáticamente en GitHub
+```
+
 ---
 
 **¡Desarrollado con ❤️ para los fanáticos de la Fórmula 1!**

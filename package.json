@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "🏎️ F1 Reflex Game - Un juego de reflejos inspirado en las luces de largada de Fórmula 1",
   "private": true,
-  "homepage": "https://github.com/EstebanZ/f1-game-website",
+  "homepage": "https://EstebanZ.github.io/f1-game-website",
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
