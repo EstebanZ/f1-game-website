@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './GameComponent.css';
 import { PlayerStats, addGameScore, getGameStats } from '../services/localData';
 import { registerPlayerInGoogleSheets } from '../services/googleSheets';
@@ -18,7 +18,7 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
   const [score, setScore] = useState<number>(0);
   const [message, setMessage] = useState('');
   const [lightsOn, setLightsOn] = useState<number>(0);
-  const [countdownTimeouts, setCountdownTimeouts] = useState<NodeJS.Timeout[]>([]);
+  const countdownTimeouts = useRef<NodeJS.Timeout[]>([]);
   const [globalBestTime, setGlobalBestTime] = useState<number | null>(null);
 
   const calculateScore = (reactionTimeMs: number): number => {
@@ -123,9 +123,9 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
   }, [playerStats.email, playerStats.name, playerStats.bestReactionTime, onStatsUpdate]);
 
   const clearTimeouts = useCallback(() => {
-    countdownTimeouts.forEach(timeout => clearTimeout(timeout));
-    setCountdownTimeouts([]);
-  }, [countdownTimeouts]);
+    countdownTimeouts.current.forEach(timeout => clearTimeout(timeout));
+    countdownTimeouts.current = [];
+  }, []);
 
   const startGame = useCallback(() => {
     clearTimeouts();
@@ -157,7 +157,7 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     }, 5000 + randomDelay); // 5 segundos para las luces + delay aleatorio
     
     timeouts.push(goTimeout);
-    setCountdownTimeouts(timeouts);
+    countdownTimeouts.current = timeouts;
   }, [clearTimeouts]);
 
   const handleSpacePress = useCallback(() => {
