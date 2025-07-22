@@ -35,7 +35,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
 
   const handleEmailBlur = () => {
     if (email && validateEmail(email)) {
-      checkExistingPlayer(email.trim().toLowerCase());
+      const emailLower = email.trim().toLowerCase();
+      checkExistingPlayer(emailLower);
     }
   };
 
@@ -53,7 +54,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
       return;
     }
 
-    if (isNewPlayer && !name.trim()) {
+    const emailLower = email.trim().toLowerCase();
+    const existingPlayer = getPlayerData(emailLower);
+    
+    // Si no existe el jugador y no hemos mostrado el campo de nombre aún
+    if (!existingPlayer && !isNewPlayer) {
+      // Establecer como nuevo jugador y mostrar el campo de nombre
+      setIsNewPlayer(true);
+      setName('');
+      setError(''); // Limpiar cualquier error
+      return; // No proceder con el login hasta que ingrese el nombre
+    }
+
+    // Si es un nuevo jugador, verificar que haya ingresado el nombre
+    if (!existingPlayer && !name.trim()) {
       setError('Por favor ingresa tu nombre');
       return;
     }
@@ -61,8 +75,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
     setLoading(true);
     
     try {
-      const emailLower = email.trim().toLowerCase();
-      let playerStats = getPlayerData(emailLower);
+      let playerStats = existingPlayer;
       
       if (!playerStats) {
         // Crear nuevo jugador
