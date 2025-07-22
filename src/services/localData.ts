@@ -110,7 +110,10 @@ export const addGameScore = (email: string, gameScore: Omit<GameScore, 'id'>): P
   }
 
   // Calcular promedio de tiempo de reacción
-  const validTimes = playerData.scores.map(s => s.reactionTime).filter(t => t > 0);
+  const validTimes = playerData.scores
+    .map(s => s.reactionTime)
+    .filter(t => t > 0 && t !== Infinity && !isNaN(t) && isFinite(t));
+  
   playerData.averageReactionTime = validTimes.length > 0 
     ? validTimes.reduce((a, b) => a + b, 0) / validTimes.length 
     : 0;
@@ -140,21 +143,44 @@ export const getGameStats = (email: string) => {
   const playerData = getPlayerData(email);
   if (!playerData) return null;
 
+  console.log('🔍 getGameStats - playerData completo:', playerData);
   console.log('🔍 getGameStats - bestReactionTime raw:', playerData.bestReactionTime);
   console.log('🔍 getGameStats - es Infinity?:', playerData.bestReactionTime === Infinity);
+  console.log('🔍 getGameStats - scores:', playerData.scores);
 
   const scores = playerData.scores;
-  const validReactionTimes = scores.map(s => s.reactionTime).filter(t => t > 0);
+  const validReactionTimes = scores
+    .map(s => s.reactionTime)
+    .filter(t => t > 0 && t !== Infinity && !isNaN(t) && isFinite(t));
 
-  const finalBestTime = playerData.bestReactionTime === Infinity ? null : playerData.bestReactionTime;
+  console.log('🔍 getGameStats - validReactionTimes:', validReactionTimes);
+
+  // Si el bestReactionTime del player es Infinity, calcular el mejor tiempo de los scores válidos
+  let finalBestTime = null;
+  if (playerData.bestReactionTime === Infinity || 
+      playerData.bestReactionTime <= 0 || 
+      !isFinite(playerData.bestReactionTime)) {
+    // Calcular el mejor tiempo de los scores válidos
+    if (validReactionTimes.length > 0) {
+      finalBestTime = Math.min(...validReactionTimes);
+    }
+  } else {
+    finalBestTime = playerData.bestReactionTime;
+  }
+  
+  // Tiempo promedio: 0 si no hay tiempos válidos
+  const finalAverageTime = validReactionTimes.length > 0 
+    ? validReactionTimes.reduce((a, b) => a + b, 0) / validReactionTimes.length 
+    : 0;
   
   console.log('🔍 getGameStats - bestReactionTime final:', finalBestTime);
+  console.log('🔍 getGameStats - averageReactionTime final:', finalAverageTime);
 
   return {
     totalGames: scores.length,
     bestScore: playerData.bestScore,
     bestReactionTime: finalBestTime,
-    averageReactionTime: playerData.averageReactionTime,
+    averageReactionTime: finalAverageTime,
     totalPlayTime: scores.length * 10, // Estimado en segundos
     improvement: calculateImprovement(validReactionTimes),
     consistency: calculateConsistency(validReactionTimes)

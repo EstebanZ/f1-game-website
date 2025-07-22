@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import './Dashboard.css';
-import { PlayerStats, getTopScores, getGameStats, exportAllData, importData, clearPlayerData } from '../services/localData';
+import { PlayerStats, getTopScores, getGameStats } from '../services/localData';
 
 interface DashboardProps {
   playerStats: PlayerStats;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ playerStats }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'settings'>('overview');
-  const [importText, setImportText] = useState('');
-  const [showImport, setShowImport] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'history'>('overview');
 
   const topScores = getTopScores(playerStats.email, 10);
   const gameStats = getGameStats(playerStats.email);
 
-  const formatTime = (ms: number): string => {
-    return ms === Infinity ? 'N/A' : `${ms}ms`;
+  const formatTime = (ms: number | null): string => {
+    if (ms === null || ms === undefined || ms === Infinity || isNaN(ms) || ms <= 0) {
+      return 'N/A';
+    }
+    return `${Math.round(ms)}ms`;
   };
 
   const formatDate = (dateString: string): string => {
@@ -28,7 +29,8 @@ const Dashboard: React.FC<DashboardProps> = ({ playerStats }) => {
     });
   };
 
-  const getReactionTimeColor = (time: number): string => {
+  const getReactionTimeColor = (time: number | null): string => {
+    if (!time || time <= 0 || time === Infinity || isNaN(time)) return '#999'; // Gris - Sin datos
     if (time < 200) return '#4CAF50'; // Verde - Excelente
     if (time < 300) return '#8BC34A'; // Verde claro - Muy bueno
     if (time < 400) return '#FFC107'; // Amarillo - Bueno
@@ -37,46 +39,13 @@ const Dashboard: React.FC<DashboardProps> = ({ playerStats }) => {
   };
 
   const getPerformanceLevel = (avgTime: number): string => {
+    if (!avgTime || avgTime <= 0 || avgTime === Infinity || isNaN(avgTime)) return 'Sin Datos 📊';
     if (avgTime < 200) return 'Piloto Profesional 🏆';
     if (avgTime < 250) return 'Piloto Experto 🥇';
     if (avgTime < 300) return 'Piloto Avanzado 🥈';
     if (avgTime < 350) return 'Piloto Intermedio 🥉';
     if (avgTime < 400) return 'Piloto Novato ⭐';
     return 'En Entrenamiento 📚';
-  };
-
-  const handleExport = () => {
-    const data = exportAllData();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `f1-reflex-backup-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImport = () => {
-    try {
-      if (importData(importText)) {
-        alert('✅ Datos importados correctamente. Recarga la página para ver los cambios.');
-        setImportText('');
-        setShowImport(false);
-      } else {
-        alert('❌ Error: Formato de datos inválido');
-      }
-    } catch (error) {
-      alert('❌ Error importando datos: ' + error);
-    }
-  };
-
-  const handleClearData = () => {
-    if (window.confirm('⚠️ ¿Estás seguro de que quieres eliminar todos tus datos? Esta acción no se puede deshacer.')) {
-      clearPlayerData(playerStats.email);
-      alert('✅ Datos eliminados. Recarga la página.');
-    }
   };
 
   return (
@@ -95,12 +64,6 @@ const Dashboard: React.FC<DashboardProps> = ({ playerStats }) => {
             onClick={() => setActiveTab('history')}
           >
             📝 Historial
-          </button>
-          <button 
-            className={activeTab === 'settings' ? 'active' : ''}
-            onClick={() => setActiveTab('settings')}
-          >
-            ⚙️ Configuración
           </button>
         </div>
       </div>
@@ -128,9 +91,9 @@ const Dashboard: React.FC<DashboardProps> = ({ playerStats }) => {
             <div className="stat-card">
               <div className="stat-icon">⚡</div>
               <div className="stat-content">
-                <h3>Mejor Tiempo</h3>
+                <h3>Mejor Tiempo Personal</h3>
                 <div className="stat-number" style={{ color: gameStats.bestReactionTime ? getReactionTimeColor(gameStats.bestReactionTime) : '#999' }}>
-                  {gameStats.bestReactionTime ? formatTime(gameStats.bestReactionTime) : 'Sin datos'}
+                  {formatTime(gameStats.bestReactionTime)}
                 </div>
               </div>
             </div>
@@ -139,8 +102,8 @@ const Dashboard: React.FC<DashboardProps> = ({ playerStats }) => {
               <div className="stat-icon">📊</div>
               <div className="stat-content">
                 <h3>Tiempo Promedio</h3>
-                <div className="stat-number" style={{ color: getReactionTimeColor(gameStats.averageReactionTime) }}>
-                  {Math.round(gameStats.averageReactionTime)}ms
+                <div className="stat-number" style={{ color: gameStats.averageReactionTime > 0 ? getReactionTimeColor(gameStats.averageReactionTime) : '#999' }}>
+                  {gameStats.averageReactionTime > 0 ? formatTime(gameStats.averageReactionTime) : 'Sin datos'}
                 </div>
               </div>
             </div>
@@ -154,7 +117,8 @@ const Dashboard: React.FC<DashboardProps> = ({ playerStats }) => {
                 {getPerformanceLevel(gameStats.averageReactionTime)}
               </div>
               <div className="level-description">
-                {gameStats.averageReactionTime < 200 && "¡Tienes reflejos excepcionales! Estás al nivel de los pilotos profesionales de F1."}
+                {(!gameStats.averageReactionTime || gameStats.averageReactionTime <= 0) && "¡Empieza a jugar para ver tu nivel de piloto! Cada partida te ayudará a mejorar tus reflejos."}
+                {gameStats.averageReactionTime > 0 && gameStats.averageReactionTime < 200 && "¡Tienes reflejos excepcionales! Estás al nivel de los pilotos profesionales de F1."}
                 {gameStats.averageReactionTime >= 200 && gameStats.averageReactionTime < 250 && "¡Excelentes reflejos! Tienes el potencial para competir a alto nivel."}
                 {gameStats.averageReactionTime >= 250 && gameStats.averageReactionTime < 300 && "Muy buenos reflejos. Con práctica puedes alcanzar el nivel profesional."}
                 {gameStats.averageReactionTime >= 300 && gameStats.averageReactionTime < 350 && "Buenos reflejos. Sigue practicando para mejorar tu consistencia."}
@@ -260,73 +224,6 @@ const Dashboard: React.FC<DashboardProps> = ({ playerStats }) => {
               <p>¡Comienza a jugar para ver tus estadísticas aquí!</p>
             </div>
           )}
-        </div>
-      )}
-
-      {activeTab === 'settings' && (
-        <div className="tab-content settings-tab">
-          <h3>⚙️ Configuración y Datos</h3>
-          
-          <div className="settings-section">
-            <h4>📤 Exportar Datos</h4>
-            <p>Descarga una copia de seguridad de todos tus datos del juego.</p>
-            <button onClick={handleExport} className="export-btn">
-              💾 Descargar Backup
-            </button>
-          </div>
-
-          <div className="settings-section">
-            <h4>📥 Importar Datos</h4>
-            <p>Restaura tus datos desde un archivo de respaldo.</p>
-            <button onClick={() => setShowImport(!showImport)} className="import-toggle-btn">
-              {showImport ? '❌ Cancelar' : '📁 Importar Datos'}
-            </button>
-            
-            {showImport && (
-              <div className="import-section">
-                <textarea
-                  value={importText}
-                  onChange={(e) => setImportText(e.target.value)}
-                  placeholder="Pega aquí el contenido de tu archivo de respaldo..."
-                  rows={5}
-                  className="import-textarea"
-                />
-                <button onClick={handleImport} className="import-btn">
-                  ✅ Importar
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="settings-section danger-zone">
-            <h4>🗑️ Zona de Peligro</h4>
-            <p>⚠️ Esta acción eliminará permanentemente todos tus datos.</p>
-            <button onClick={handleClearData} className="danger-btn">
-              🗑️ Eliminar Todos los Datos
-            </button>
-          </div>
-
-          <div className="settings-section">
-            <h4>ℹ️ Información del Jugador</h4>
-            <div className="player-info-grid">
-              <div className="info-item">
-                <span className="info-label">Email:</span>
-                <span className="info-value">{playerStats.email}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Nombre:</span>
-                <span className="info-value">{playerStats.name.includes('@') ? playerStats.name.split('@')[0] : playerStats.name}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Registrado:</span>
-                <span className="info-value">{formatDate(playerStats.registeredAt)}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Última partida:</span>
-                <span className="info-value">{formatDate(playerStats.lastPlayed)}</span>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>

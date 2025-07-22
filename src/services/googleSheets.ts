@@ -11,6 +11,8 @@ export interface PlayerData {
   email: string;
   name?: string;
   bestScore: number;
+  bestReactionTime?: number;
+  averageReactionTime?: number;
   gamesPlayed: number;
 }
 
@@ -20,6 +22,7 @@ export interface GoogleSheetsResponse {
   error?: string;
   email?: string;
   bestScore?: number;
+  bestReactionTime?: number;
   gamesPlayed?: number;
 }
 
@@ -36,7 +39,7 @@ export const registerPlayerInGoogleSheets = async (playerData: PlayerData): Prom
   }
 
   try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
+    await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors', // Requerido para Google Apps Script
       headers: {

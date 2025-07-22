@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './GameComponent.css';
-import { PlayerStats, addGameScore } from '../services/localData';
-import { updatePlayerStatsInGoogleSheets } from '../services/googleSheets';
+import { PlayerStats, addGameScore, getGameStats } from '../services/localData';
+import { registerPlayerInGoogleSheets } from '../services/googleSheets';
 
 interface GameComponentProps {
   playerStats: PlayerStats;
@@ -17,9 +17,9 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [score, setScore] = useState<number>(0);
   const [message, setMessage] = useState('');
-  const [isGameActive, setIsGameActive] = useState(false);
   const [lightsOn, setLightsOn] = useState<number>(0);
   const [countdownTimeouts, setCountdownTimeouts] = useState<NodeJS.Timeout[]>([]);
+  const [globalBestTime, setGlobalBestTime] = useState<number | null>(null);
 
   const calculateScore = (reactionTimeMs: number): number => {
     // Puntuación basada en tiempo de reacción (más realista para F1)
@@ -47,7 +47,43 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     return "🐌 Tiempo de domingo por la mañana - ¡Mucha práctica necesaria!";
   };
 
-  const saveScore = async (reactionTimeMs: number, gameScore: number) => {
+  // Función para obtener el mejor tiempo global
+  const fetchGlobalBestTime = async () => {
+    try {
+      const scriptUrl = process.env.REACT_APP_GOOGLE_SCRIPT_URL;
+      if (!scriptUrl) {
+        console.warn('URL del Google Script no configurada, usando datos locales para mejor tiempo global');
+        // Fallback: usar datos locales para obtener el mejor tiempo
+        const data = localStorage.getItem('f1-reflex-game-data');
+        if (data) {
+          const allPlayers = JSON.parse(data);
+          let globalBest = Infinity;
+          Object.values(allPlayers).forEach((player: any) => {
+            if (player.bestReactionTime && player.bestReactionTime !== Infinity && player.bestReactionTime > 0) {
+              globalBest = Math.min(globalBest, player.bestReactionTime);
+            }
+          });
+          setGlobalBestTime(globalBest === Infinity ? null : globalBest);
+        }
+        return;
+      }
+      
+      const response = await fetch(`${scriptUrl}?action=getGlobalStats`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.globalBestTime > 0) {
+          setGlobalBestTime(data.globalBestTime);
+        } else {
+          setGlobalBestTime(null);
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo obtener el mejor tiempo global:', error);
+      setGlobalBestTime(null);
+    }
+  };
+
+  const saveScore = useCallback(async (reactionTimeMs: number, gameScore: number) => {
     try {
       console.log('🔍 Guardando puntuación:', { reactionTimeMs, gameScore, currentBestTime: playerStats.bestReactionTime });
       
@@ -65,12 +101,18 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
         
         // Actualizar en Google Sheets (no bloquear si falla)
         try {
-          await updatePlayerStatsInGoogleSheets(
-            playerStats.email,
-            newStats.bestScore,
-            newStats.totalGames
-          );
-          console.log('✅ Estadísticas actualizadas en Google Sheets');
+          const gameStats = getGameStats(playerStats.email);
+          await registerPlayerInGoogleSheets({
+            email: playerStats.email,
+            name: playerStats.name,
+            bestScore: newStats.bestScore,
+            bestReactionTime: gameStats?.bestReactionTime || 0, // Usar el tiempo calculado de gameStats
+            gamesPlayed: newStats.totalGames
+          });
+          console.log('✅ Estadísticas actualizadas en Google Sheets con mejor tiempo:', gameStats?.bestReactionTime);
+          
+          // Actualizar el mejor tiempo global después de subir a Sheets
+          fetchGlobalBestTime();
         } catch (sheetError) {
           console.warn('⚠️ No se pudieron actualizar las estadísticas en Google Sheets:', sheetError);
         }
@@ -78,18 +120,17 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     } catch (error) {
       console.error('Error guardando puntuación:', error);
     }
-  };
+  }, [playerStats.email, playerStats.name, playerStats.bestReactionTime, onStatsUpdate]);
 
-  const clearTimeouts = () => {
+  const clearTimeouts = useCallback(() => {
     countdownTimeouts.forEach(timeout => clearTimeout(timeout));
     setCountdownTimeouts([]);
-  };
+  }, [countdownTimeouts]);
 
-  const startGame = () => {
+  const startGame = useCallback(() => {
     clearTimeouts();
     setGameState('countdown');
     setMessage('Preparándose para la salida...');
-    setIsGameActive(true);
     setLightsOn(0);
     setReactionTime(null);
     setScore(0);
@@ -117,7 +158,7 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     
     timeouts.push(goTimeout);
     setCountdownTimeouts(timeouts);
-  };
+  }, [clearTimeouts]);
 
   const handleSpacePress = useCallback(() => {
     if (gameState === 'waiting') {
@@ -130,8 +171,7 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
       // Salida en falso
       clearTimeouts();
       setGameState('tooEarly');
-      setMessage('🚨 ¡SALIDA EN FALSO! 🚨\nPresiona ESPACIO para intentar de nuevo');
-      setIsGameActive(false);
+      setMessage('🚨 ¡SALIDA EN FALSO! 🚨'); // Solo el mensaje de error
     } else if (gameState === 'go') {
       // Tiempo válido
       const endTime = Date.now();
@@ -141,13 +181,12 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
       setReactionTime(reactionTimeMs);
       setScore(gameScore);
       setGameState('clicked');
-      setMessage(getPerformanceMessage(reactionTimeMs) + '\nPresiona ESPACIO para otra carrera');
-      setIsGameActive(false);
+      setMessage(getPerformanceMessage(reactionTimeMs)); // Solo el mensaje de performance
       
       // Guardar puntuación
       saveScore(reactionTimeMs, gameScore);
     }
-  }, [gameState, isGameActive, startTime, playerStats.email, onStatsUpdate]);
+  }, [gameState, startTime, clearTimeouts, saveScore, startGame]);
 
   // Manejar la tecla espacio
   useEffect(() => {
@@ -163,31 +202,29 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
       window.removeEventListener('keydown', handleKeyPress);
       clearTimeouts();
     };
-  }, [handleSpacePress]);
+  }, [handleSpacePress, clearTimeouts]);
 
-  const resetGame = () => {
-    clearTimeouts();
-    setGameState('waiting');
-    setMessage('');
-    setIsGameActive(false);
-    setLightsOn(0);
-    setReactionTime(null);
-    setScore(0);
-  };
+  // Cargar mejor tiempo global al montar el componente
+  useEffect(() => {
+    fetchGlobalBestTime();
+  }, []);
 
   return (
     <div className="game-container">
       <div className="game-header">
-        <h2>� F1 REACTION CHAMPIONSHIP</h2>
+        <h2>🏁 F1 REACTION CHAMPIONSHIP</h2>
         <div className="player-info">
           <span>🏎️ PILOTO: {(() => {
             const name = userEmail || playerStats.email || 'N/A';
-            return name.includes('@') ? name.split('@')[0] : name;
+            const displayName = name.includes('@') ? name.split('@')[0] : name;
+            return displayName.toUpperCase();
           })()}</span>
           <span>🏆 RÉCORD: {playerStats.bestScore} pts</span>
-          <span>⚡ MEJOR TIEMPO: {(() => {
-            console.log('🎯 Stats actuales:', { bestReactionTime: playerStats.bestReactionTime, type: typeof playerStats.bestReactionTime });
-            return playerStats.bestReactionTime === Infinity || playerStats.bestReactionTime === null || playerStats.bestReactionTime === undefined ? 'N/A' : `${playerStats.bestReactionTime}ms`;
+          <span>⚡ MEJOR TIEMPO GLOBAL: {(() => {
+            if (globalBestTime === null || globalBestTime === undefined || globalBestTime <= 0) {
+              return 'N/A';
+            }
+            return `${Math.round(globalBestTime)}ms`;
           })()}</span>
         </div>
       </div>
@@ -215,7 +252,25 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
           
           {gameState === 'go' && (
             <div className="action-prompt">
-              <div className="space-indicator">PRESIONA ESPACIO</div>
+              <div 
+                className="space-indicator"
+                onClick={handleSpacePress}
+                style={{ cursor: 'pointer' }}
+              >
+                PRESIONA ESPACIO
+              </div>
+            </div>
+          )}
+          
+          {(gameState === 'clicked' || gameState === 'tooEarly') && (
+            <div className="action-prompt">
+              <div 
+                className="restart-button"
+                onClick={handleSpacePress}
+                style={{ cursor: 'pointer' }}
+              >
+                🏁 PRESIONA ESPACIO PARA OTRA CARRERA
+              </div>
             </div>
           )}
         </div>

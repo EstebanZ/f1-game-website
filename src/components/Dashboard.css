@@ -6,8 +6,8 @@
   padding: clamp(1rem, 3vw, 2rem); /* Padding más responsivo */
   background: transparent; /* Sin caja de fondo */
   color: white;
-  max-height: 90vh; /* Altura máxima para activar scroll */
-  overflow-y: auto; /* Scroll vertical */
+  height: 100%; /* Usar toda la altura disponible */
+  overflow-y: auto; /* Scroll vertical solo aquí */
   overflow-x: hidden; /* NUNCA mostrar scroll horizontal */
   box-sizing: border-box; /* Incluir padding en el ancho total */
 }

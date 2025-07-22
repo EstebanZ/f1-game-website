@@ -67,7 +67,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
       
       if (!playerStats) {
         // Crear nuevo jugador
-        const playerName = name.trim() || 'Jugador';
+        const playerName = name.trim() || 'Usuario';
         playerStats = createPlayer(emailLower, playerName);
         
         // Registrar en Google Sheets (no bloquear si falla)

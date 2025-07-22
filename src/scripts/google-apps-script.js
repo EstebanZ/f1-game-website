@@ -54,12 +54,37 @@ function doPost(e) {
 }
 
 /**
- * Función para manejar peticiones GET (opcional, para testing)
+ * Función para manejar peticiones GET
  */
 function doGet(e) {
-  return ContentService
-    .createTextOutput('F1 Reflex Game - Google Sheets Integration API is running!')
-    .setMimeType(ContentService.MimeType.TEXT);
+  try {
+    const action = e.parameter.action;
+    
+    switch (action) {
+      case 'getGlobalStats':
+        return ContentService
+          .createTextOutput(JSON.stringify(getGlobalStats()))
+          .setMimeType(ContentService.MimeType.JSON);
+          
+      case 'getTopPlayers':
+        return ContentService
+          .createTextOutput(JSON.stringify(getTopPlayers()))
+          .setMimeType(ContentService.MimeType.JSON);
+          
+      default:
+        return ContentService
+          .createTextOutput('F1 Reflex Game - Google Sheets Integration API is running!')
+          .setMimeType(ContentService.MimeType.TEXT);
+    }
+    
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: error.toString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 /**
@@ -80,6 +105,8 @@ function getOrCreateSheet() {
       'Nombre', 
       'Fecha Registro',
       'Mejor Score',
+      'Mejor Tiempo Reaccion (ms)',
+      'Tiempo Promedio (ms)',
       'Partidas Jugadas',
       'Última Actualización'
     ];
@@ -97,8 +124,10 @@ function getOrCreateSheet() {
     sheet.setColumnWidth(2, 150); // Nombre
     sheet.setColumnWidth(3, 120); // Fecha Registro
     sheet.setColumnWidth(4, 100); // Mejor Score
-    sheet.setColumnWidth(5, 120); // Partidas Jugadas
-    sheet.setColumnWidth(6, 140); // Última Actualización
+    sheet.setColumnWidth(5, 150); // Mejor Tiempo Reaccion
+    sheet.setColumnWidth(6, 150); // Tiempo Promedio
+    sheet.setColumnWidth(7, 120); // Partidas Jugadas
+    sheet.setColumnWidth(8, 140); // Última Actualización
   }
   
   return sheet;
@@ -109,10 +138,18 @@ function getOrCreateSheet() {
  */
 function registerOrUpdatePlayer(sheet, data) {
   const email = data.email;
-  const name = data.name || 'Jugador';
+  const name = data.name || 'Usuario';
   const bestScore = data.bestScore || 0;
+  const bestReactionTime = data.bestReactionTime || 0;
   const gamesPlayed = data.gamesPlayed || 0;
   const now = new Date();
+  
+  console.log('📊 Datos recibidos:', {
+    email: email,
+    bestScore: bestScore,
+    bestReactionTime: bestReactionTime,
+    gamesPlayed: gamesPlayed
+  });
   
   // Buscar si el jugador ya existe
   const dataRange = sheet.getDataRange();
@@ -132,22 +169,41 @@ function registerOrUpdatePlayer(sheet, data) {
     // Actualizar jugador existente
     const currentData = values[playerRow - 1];
     const currentBestScore = currentData[3] || 0;
-    const currentGamesPlayed = currentData[4] || 0;
+    const currentBestReactionTime = currentData[4] || Infinity;
+    const currentGamesPlayed = currentData[6] || 0;
     
     // Solo actualizar si los nuevos datos son mejores o mayores
     const newBestScore = Math.max(currentBestScore, bestScore);
+    
+    // Para tiempo de reacción: solo actualizar si el nuevo tiempo es mejor (menor) y válido
+    let newBestReactionTime = currentBestReactionTime;
+    if (bestReactionTime > 0 && bestReactionTime !== Infinity) {
+      if (currentBestReactionTime === 0 || currentBestReactionTime === Infinity || bestReactionTime < currentBestReactionTime) {
+        newBestReactionTime = bestReactionTime;
+      }
+    }
+    
     const newGamesPlayed = Math.max(currentGamesPlayed, gamesPlayed);
     
     // Actualizar fila
     sheet.getRange(playerRow, 4).setValue(newBestScore); // Mejor Score
-    sheet.getRange(playerRow, 5).setValue(newGamesPlayed); // Partidas Jugadas
-    sheet.getRange(playerRow, 6).setValue(now); // Última Actualización
+    sheet.getRange(playerRow, 5).setValue(newBestReactionTime === Infinity || newBestReactionTime === 0 ? 0 : newBestReactionTime); // Mejor Tiempo
+    sheet.getRange(playerRow, 7).setValue(newGamesPlayed); // Partidas Jugadas
+    sheet.getRange(playerRow, 8).setValue(now); // Última Actualización
+    
+    console.log('✅ Jugador actualizado:', {
+      email: email,
+      newBestScore: newBestScore,
+      newBestReactionTime: newBestReactionTime,
+      newGamesPlayed: newGamesPlayed
+    });
     
     return {
       success: true,
       action: 'updated',
       email: email,
       bestScore: newBestScore,
+      bestReactionTime: newBestReactionTime === Infinity || newBestReactionTime === 0 ? 0 : newBestReactionTime,
       gamesPlayed: newGamesPlayed
     };
     
@@ -158,9 +214,21 @@ function registerOrUpdatePlayer(sheet, data) {
       name,
       now, // Fecha Registro
       bestScore,
+      bestReactionTime === Infinity || bestReactionTime === 0 ? 0 : bestReactionTime, // Mejor Tiempo
+      0, // Tiempo Promedio (se calcula globalmente)
       gamesPlayed,
       now // Última Actualización
     ];
+    
+    sheet.appendRow(newRow);
+    
+    console.log('✅ Nuevo jugador creado:', {
+      email: email,
+      name: name,
+      bestScore: bestScore,
+      bestReactionTime: bestReactionTime,
+      gamesPlayed: gamesPlayed
+    });
     
     sheet.appendRow(newRow);
     
@@ -170,6 +238,7 @@ function registerOrUpdatePlayer(sheet, data) {
       email: email,
       name: name,
       bestScore: bestScore,
+      bestReactionTime: bestReactionTime,
       gamesPlayed: gamesPlayed
     };
   }
@@ -230,12 +299,19 @@ function getTopPlayers() {
         email: values[i][0],
         name: values[i][1],
         bestScore: values[i][3] || 0,
-        gamesPlayed: values[i][4] || 0
+        bestReactionTime: values[i][4] || 0,
+        averageReactionTime: values[i][5] || 0,
+        gamesPlayed: values[i][6] || 0
       });
     }
     
-    // Ordenar por mejor score
-    players.sort((a, b) => b.bestScore - a.bestScore);
+    // Ordenar por mejor tiempo de reacción (menor es mejor)
+    players.sort((a, b) => {
+      // Si alguno no tiene tiempo registrado, va al final
+      if (a.bestReactionTime === 0) return 1;
+      if (b.bestReactionTime === 0) return -1;
+      return a.bestReactionTime - b.bestReactionTime;
+    });
     
     return {
       success: true,
@@ -243,6 +319,98 @@ function getTopPlayers() {
     };
     
   } catch (error) {
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Función para obtener estadísticas globales
+ */
+function getGlobalStats() {
+  try {
+    const sheet = getOrCreateSheet();
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    if (values.length <= 1) {
+      return {
+        success: true,
+        totalPlayers: 0,
+        totalGames: 0,
+        globalBestTime: 0,
+        averageGlobalTime: 0,
+        topPlayers: [],
+        recentActivity: []
+      };
+    }
+    
+    // Obtener datos de jugadores (saltar encabezado)
+    let totalPlayers = 0;
+    let totalGames = 0;
+    const allReactionTimes = [];
+    const topPlayers = [];
+    
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      totalPlayers++;
+      totalGames += row[6] || 0; // Sumar partidas jugadas
+      
+      const reactionTime = row[4] || 0;
+      if (reactionTime > 0) {
+        allReactionTimes.push(reactionTime);
+      }
+      
+      topPlayers.push({
+        name: row[1] || 'Usuario',
+        email: row[0],
+        bestTime: reactionTime,
+        totalGames: row[6] || 0,
+        averageTime: row[5] || 0
+      });
+    }
+    
+    // Calcular estadísticas globales
+    const globalBestTime = allReactionTimes.length > 0 ? Math.min(...allReactionTimes) : 0;
+    const averageGlobalTime = allReactionTimes.length > 0 ? 
+      allReactionTimes.reduce((sum, time) => sum + time, 0) / allReactionTimes.length : 0;
+    
+    // Ordenar top players por mejor tiempo
+    topPlayers.sort((a, b) => {
+      if (a.bestTime === 0) return 1;
+      if (b.bestTime === 0) return -1;
+      return a.bestTime - b.bestTime;
+    });
+    
+    // Simular actividad reciente (los últimos jugadores actualizados)
+    const recentActivity = [];
+    for (let i = Math.max(1, values.length - 20); i < values.length; i++) {
+      const row = values[i];
+      recentActivity.push({
+        playerName: row[1] || 'Jugador',
+        reactionTime: row[4] || 0,
+        score: row[3] || 0,
+        timestamp: row[7] || new Date().toISOString()
+      });
+    }
+    
+    // Ordenar actividad reciente por fecha (más reciente primero)
+    recentActivity.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    return {
+      success: true,
+      totalPlayers: totalPlayers,
+      totalGames: totalGames,
+      globalBestTime: Math.round(globalBestTime),
+      averageGlobalTime: Math.round(averageGlobalTime),
+      topPlayers: topPlayers.slice(0, 10),
+      recentActivity: recentActivity.slice(0, 20)
+    };
+    
+  } catch (error) {
+    console.error('Error in getGlobalStats:', error);
     return {
       success: false,
       error: error.toString()

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <!-- Patrón de cuadros F1 -->
+    <pattern id="checkerboard" patternUnits="userSpaceOnUse" width="14" height="14">
+      <rect width="7" height="7" fill="#000000"/>
+      <rect x="7" y="7" width="7" height="7" fill="#000000"/>
+      <rect x="7" y="0" width="7" height="7" fill="#ffffff"/>
+      <rect x="0" y="7" width="7" height="7" fill="#ffffff"/>
+    </pattern>
+    
+    <!-- Gradiente para el fondo -->
+    <radialGradient id="f1Background" cx="0.3" cy="0.3">
+      <stop offset="0%" style="stop-color:#2a2a2a;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Gradiente para el poste -->
+    <linearGradient id="poleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#654321;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#654321;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fondo circular F1 -->
+  <circle cx="96" cy="96" r="87" fill="url(#f1Background)" stroke="#e10600" stroke-width="4"/>
+  
+  <!-- Poste de la bandera -->
+  <rect x="32" y="48" width="6" height="96" fill="url(#poleGradient)"/>
+  <rect x="33" y="48" width="2" height="96" fill="rgba(255,255,255,0.3)"/>
+  
+  <!-- Bandera -->
+  <rect x="38" y="48" width="96" height="64" fill="url(#checkerboard)" stroke="#333333" stroke-width="1"/>
+  
+  <!-- Círculo F1 en la bandera -->
+  <circle cx="102" cy="80" r="12" fill="#e10600"/>
+  <text x="102" y="83" text-anchor="middle" fill="white" font-family="Arial Black, sans-serif" font-size="9" font-weight="bold">F1</text>
+  
+  <!-- Efecto de brillo en la bandera -->
+  <rect x="38" y="48" width="96" height="9" fill="rgba(255,255,255,0.2)"/>
+</svg>
