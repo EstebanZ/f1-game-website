@@ -204,11 +204,6 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
     };
   }, [handleSpacePress, clearTimeouts]);
 
-  // Cargar mejor tiempo global al montar el componente
-  useEffect(() => {
-    fetchGlobalBestTime();
-  }, []);
-
   return (
     <div className="game-container">
       <div className="game-header">
@@ -220,11 +215,11 @@ const GameComponent: React.FC<GameComponentProps> = ({ playerStats, onStatsUpdat
             return displayName.toUpperCase();
           })()}</span>
           <span>🏆 RÉCORD: {playerStats.bestScore} pts</span>
-          <span>⚡ MEJOR TIEMPO GLOBAL: {(() => {
-            if (globalBestTime === null || globalBestTime === undefined || globalBestTime <= 0) {
+          <span>⚡ MEJOR TIEMPO PERSONAL: {(() => {
+            if (!playerStats.bestReactionTime || playerStats.bestReactionTime === Infinity || playerStats.bestReactionTime <= 0) {
               return 'N/A';
             }
-            return `${Math.round(globalBestTime)}ms`;
+            return `${Math.round(playerStats.bestReactionTime)}ms`;
           })()}</span>
         </div>
       </div>

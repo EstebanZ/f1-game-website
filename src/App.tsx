@@ -91,16 +91,16 @@ function App() {
         
         <div className={`nav-menu ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           <button 
-            className={currentView === 'dashboard' ? 'active' : ''}
-            onClick={() => handleViewChange('dashboard')}
-          >
-            📊 Dashboard
-          </button>
-          <button 
             className={currentView === 'game' ? 'active' : ''}
             onClick={() => handleViewChange('game')}
           >
             🏎️ Juego
+          </button>
+          <button 
+            className={currentView === 'dashboard' ? 'active' : ''}
+            onClick={() => handleViewChange('dashboard')}
+          >
+            📊 Dashboard
           </button>
           <button 
             className={currentView === 'global' ? 'active' : ''}
